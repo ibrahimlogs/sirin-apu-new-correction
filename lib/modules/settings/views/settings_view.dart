@@ -36,7 +36,7 @@ class _SettingsViewState extends State<SettingsView> {
       return Scaffold(
         body: Center(child: Text(context.l10n.youAreNotSignedIn)),
       );
-    ) ;
+    }
 
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
