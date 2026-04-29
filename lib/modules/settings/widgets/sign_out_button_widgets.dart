@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/controller/auth_controller.dart';
+import '../../../core/localization/l10n.dart';
 import '../../signin/view/signin_view.dart';
 
 class SignOutButtonWidget extends StatelessWidget {
@@ -22,9 +23,9 @@ class SignOutButtonWidget extends StatelessWidget {
   }
 
   Future<void> _clearScopedStepPrefsForUid(
-    SharedPreferences prefs,
-    String uid,
-  ) async {
+      SharedPreferences prefs,
+      String uid,
+      ) async {
     final today = _ymdNow();
     // Keys mirrored from StepsView
     final todayStepsKey = _userKey(uid, 'todaySteps_$today');
@@ -59,19 +60,17 @@ class SignOutButtonWidget extends StatelessWidget {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Are you sure?'),
-          content: const Text(
-            'If you delete, all your progress regarding step counting summary will be deleted.',
-          ),
+          title: Text(context.l10n.deleteAccountTitle),
+          content: Text(context.l10n.deleteAccountDescription),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
+              child: Text(MaterialLocalizations.of(dialogContext).cancelButtonLabel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('Delete Now'),
+              child: Text(context.l10n.deleteAccount),
             ),
           ],
         );
@@ -107,20 +106,20 @@ class SignOutButtonWidget extends StatelessWidget {
       Navigator.of(context, rootNavigator: true).pop();
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const SignInView()),
-        (route) => false,
+            (route) => false,
       );
     } on FirebaseAuthException catch (e) {
       if (!context.mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Failed to delete account.')),
+        SnackBar(content: Text(e.message ?? context.l10n.deleteAccountFailed)),
       );
     } catch (e) {
       if (!context.mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Failed to delete account: $e')));
+      ).showSnackBar(SnackBar(content: Text('${context.l10n.deleteAccountFailed}: $e')));
     }
   }
 
@@ -148,15 +147,15 @@ class SignOutButtonWidget extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.logout, color: Colors.red),
-                label: const Text('Sign out', style: TextStyle(color: Colors.red)),
+                label: Text(context.l10n.signOut, style: const TextStyle(color: Colors.red)),
               ),
               const SizedBox(width: 16),
               TextButton.icon(
                 onPressed: () => _deleteAccount(context),
                 icon: const Icon(Icons.delete_outline, color: Colors.red),
-                label: const Text(
-                  'Delete Account',
-                  style: TextStyle(color: Colors.red),
+                label: Text(
+                  context.l10n.deleteAccount,
+                  style: const TextStyle(color: Colors.red),
                 ),
               ),
             ],
