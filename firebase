@@ -1,0 +1,108 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // ---------- companies ----------
+    match /companies/{companyId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ---------- users ----------
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ---------- threads & messages ----------
+    match /threads/{threadId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn();
+        allow create, update, delete: if isAdmin();
+      }
+    }
+
+    // ---------- threadReads (read receipts) ----------
+    // docId format: "<threadId>_<userId>"
+    match /threadReads/{docId} {
+      // Helper: does docId end with "_<uid>" ?
+      function isOwnerDocId() {
+        return isSignedIn() && docId.size() >= request.auth.uid.size() + 1
+          && docId[docId.size() - request.auth.uid.size() - 1] == '_'
+          && docId[docId.size() - request.auth.uid.size() : docId.size()] == request.auth.uid;
+      }
+
+      // Allow owner to read even if the doc doesn't exist yet.
+      allow get, list: if isOwnerDocId();
+
+      // Owner can create/update their own receipt; require userId matches auth
+      allow create, update: if isOwnerDocId()
+        && request.resource.data.userId == request.auth.uid;
+
+      // Owner can delete
+      allow delete: if isOwnerDocId();
+    }
+
+    // ---------- daily_steps_summary ----------
+    match /daily_steps_summary/{docId} {
+      allow read: if true;
+
+      allow create, update: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && docId.size() >= request.auth.uid.size() + 1
+        && docId[0:request.auth.uid.size()] == request.auth.uid
+        && docId[request.auth.uid.size()] == '_'
+        && request.resource.data.keys().hasAll(['uid', 'steps', 'date'])
+        && request.resource.data.steps is int
+        && request.resource.data.steps >= 0
+        && request.resource.data.date is string;
+
+      // User can delete their own step summaries.
+      // Admin can also delete any step summary.
+      allow delete: if (
+        isSignedIn() && resource.data.uid == request.auth.uid
+      ) || isAdmin();
+    }
+
+    // ---------- security_keys ----------
+    match /security_keys/{keyDocId} {
+      // Admin creates keys
+      allow create: if isAdmin();
+
+      // Needed for the client query: where('key',...) ... get() is a LIST operation
+      allow list: if isSignedIn();
+
+      // Prevent direct doc reads by ID (optional, keep as false)
+      allow get: if false;
+
+      // User can claim a key exactly once (unused -> used), and only for themselves
+      allow update: if isSignedIn()
+        && resource.data.status == "unused"
+        && request.resource.data.status == "used"
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.key == resource.data.key
+        && request.resource.data.companyId is string;
+
+      // No deletes from client
+      allow delete: if false;
+    }
+
+    // deny all else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
