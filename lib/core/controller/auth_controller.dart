@@ -386,40 +386,27 @@ class AuthController {
     await _firebaseAuth.signOut();
   }
 
-  Future<void> deleteCurrentUserAndData() async {
-    final user = _firebaseAuth.currentUser;
-    if (user == null) {
-      throw FirebaseAuthException(
-        code: 'no-current-user',
-        message: 'No signed-in user to delete.',
-      );
-    }
+ Future<void> deleteCurrentUserAndData() async {
+  final user = _firebaseAuth.currentUser;
 
-    try {
-      final callable = _functions.httpsCallable('deleteMyAccount');
-      await callable.call();
-      return;
-    } on FirebaseFunctionsException catch (e) {
-      if (e.code == 'unauthenticated') {
-        throw FirebaseAuthException(
-          code: 'not-authenticated',
-          message: e.message ?? 'You must be signed in.',
-        );
-      }
-      if (e.code == 'not-found' ||
-          e.code == 'unimplemented' ||
-          e.code == 'unavailable') {
-        await _deleteAccountLocally(user);
-        return;
-      }
-      throw FirebaseAuthException(
-        code: e.code,
-        message: e.message ?? 'Failed to delete account.',
-      );
-    } catch (e) {
-      throw FirebaseAuthException(code: 'unknown', message: e.toString());
-    }
+  if (user == null) {
+    throw FirebaseAuthException(
+      code: 'no-current-user',
+      message: 'No signed-in user to delete.',
+    );
   }
+
+  try {
+    await _deleteAccountLocally(user);
+  } on FirebaseAuthException {
+    rethrow;
+  } catch (e) {
+    throw FirebaseAuthException(
+      code: 'unknown',
+      message: e.toString(),
+    );
+  }
+}
 
   Future<void> _deleteAccountLocally(User user) async {
     final uid = user.uid;
