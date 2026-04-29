@@ -1,5 +1,6 @@
 // goal_section_widgets.dart
 import 'package:flutter/material.dart';
+import '../../../core/localization/l10n.dart';
 import '../../../core/values/app_style.dart';
 import 'goal_list_widgets.dart';
 
@@ -10,6 +11,7 @@ class GoalSectionWidgets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.only(top: 25.0),
       child: Container(
@@ -25,14 +27,14 @@ class GoalSectionWidgets extends StatelessWidget {
               children: [
                 const Icon(Icons.flag_outlined),
                 const SizedBox(width: 10),
-                Text('Goal', style: titleTextStyleBlack),
+                Text(l10n.goal, style: titleTextStyleBlack),
                 const Spacer(),
                 const Icon(Icons.keyboard_arrow_down),
               ],
             ),
             const SizedBox(height: 20),
             // Keep the exact same usage/design
-            GoalListWidgets(hint: "Step Count (Per Day)", value: goal),
+            GoalListWidgets(hint: l10n.stepCountPerDay, value: goal),
           ],
         ),
       ),
