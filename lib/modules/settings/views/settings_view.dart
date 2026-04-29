@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:nittoseiko_health_care/core/controller/firebase_service.dart';
+import 'package:nittoseiko_health_care/core/localization/l10n.dart';
 import 'package:nittoseiko_health_care/core/localization/locale_controller.dart';
 import 'package:nittoseiko_health_care/modules/common/company_directory.dart';
 import 'package:nittoseiko_health_care/modules/settings/widgets/update_alart_dialog_widegets.dart';
@@ -32,10 +33,10 @@ class _SettingsViewState extends State<SettingsView> {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: Text('You are not signed in.')),
+      return Scaffold(
+        body: Center(child: Text(context.l10n.youAreNotSignedIn)),
       );
-    }
+    ) ;
 
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
@@ -50,8 +51,8 @@ class _SettingsViewState extends State<SettingsView> {
         }
 
         if (!snapshot.hasData || !(snapshot.data?.exists ?? false)) {
-          return const Scaffold(
-            body: Center(child: Text('No profile data found.')),
+          return Scaffold(
+            body: Center(child: Text(context.l10n.noProfileDataFound)),
           );
         }
 
@@ -79,7 +80,7 @@ class _SettingsViewState extends State<SettingsView> {
 
         final name = readString('name');
         final nick = readString('nickName');
-        final headerName = name.isNotEmpty ? name : 'User';
+        final headerName = name.isNotEmpty ? name : context.l10n.user;
 
         final gender = readString('gender');
         final birthday = readString('birthday');
