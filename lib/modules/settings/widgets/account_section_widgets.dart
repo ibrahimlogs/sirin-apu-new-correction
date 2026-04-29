@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/localization/l10n.dart';
 import '../../../core/values/app_style.dart';
 import 'personal_list_widgets.dart';
 
@@ -39,6 +40,7 @@ class AccountSectionWidgets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.only(top: 25),
       child: Container(
@@ -52,48 +54,48 @@ class AccountSectionWidgets extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.person_outline),
-                SizedBox(width: 10),
-                Text('Profile', style: titleTextStyleBlack),
-                Spacer(),
-                Icon(Icons.keyboard_arrow_down),
+                const Icon(Icons.person_outline),
+                const SizedBox(width: 10),
+                Text(l10n.profile, style: titleTextStyleBlack),
+                const Spacer(),
+                const Icon(Icons.keyboard_arrow_down),
               ],
             ),
             const SizedBox(height: 20),
             PersonalListWidgets(
-              hint: "Nick Name",
+              hint: l10n.nickName,
               data: nickName,
               onPressed: onPressedNickName,
             ),
             PersonalListWidgets(
-              hint: "Gender",
+              hint: l10n.gender,
               data: gender,
               onPressed: onPressedGender,
             ),
 
             PersonalListWidgets(
-              hint: "Date Of Birth",
+              hint: l10n.dateOfBirth,
               data: birthday,
               onPressed: onPressedBirthday,
             ),
 
             PersonalListWidgets(
-              hint: "Height",
+              hint: l10n.height,
               data: height,
               onPressed: onPressedHeight,
             ),
             PersonalListWidgets(
-              hint: "Weight",
+              hint: l10n.weight,
               data: weight,
               onPressed: onPressedWeight,
             ),
             PersonalListWidgets(
-              hint: "Company Name",
+              hint: l10n.companyName,
               data: companyName,
               onPressed: onPressedCompanyName,
             ),
             PersonalListWidgets(
-              hint: "Personal Code",
+              hint: l10n.personalCode,
               data: personalCode,
               onPressed: onPressedPersonalCode,
             ),
