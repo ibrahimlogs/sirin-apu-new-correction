@@ -1,14 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:nittoseiko_health_care/core/controller/firebase_service.dart';
+import 'package:nittoseiko_health_care/core/localization/locale_controller.dart';
 import 'package:nittoseiko_health_care/modules/common/company_directory.dart';
 import 'package:nittoseiko_health_care/modules/settings/widgets/update_alart_dialog_widegets.dart';
 
 import '../../../core/values/app_color.dart';
 import '../../../core/values/app_style.dart';
 import '../widgets/account_section_widgets.dart';
+import '../widgets/language_selector_widget.dart';
 import '../widgets/goal_Section_widgets.dart';
 import '../widgets/sign_out_button_widgets.dart';
 
@@ -89,6 +92,10 @@ class _SettingsViewState extends State<SettingsView> {
         final personalCode = readString('personalCode');
         final goalInt = readInt('stepGoal', 10000);
         final goalStr = goalInt.toString();
+        final localeController = context.watch<LocaleController>();
+        final localeCode =
+          localeController.locale?.languageCode ??
+          Localizations.localeOf(context).languageCode;
 
         _service.settingsData = data;
 
@@ -103,6 +110,15 @@ class _SettingsViewState extends State<SettingsView> {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(headerName, style: appbarTextStyleBlack),
                 ),
+
+                LanguageSelectorWidget(
+                  selectedLanguageCode: localeCode,
+                  onChanged: (value) {
+                    context.read<LocaleController>().setLocale(Locale(value));
+                  },
+                ),
+
+                const SizedBox(height: 12),
 
                 AccountSectionWidgets(
                   nickName: nick,
@@ -134,14 +150,14 @@ class _SettingsViewState extends State<SettingsView> {
                     showDialog(
                       context: context,
                       builder: (context) =>
-                          const UpdateAlartDialogWidegets(title: 'Height'),
+                      const UpdateAlartDialogWidegets(title: 'Height'),
                     );
                   },
                   onPressedWeight: () {
                     showDialog(
                       context: context,
                       builder: (context) =>
-                          const UpdateAlartDialogWidegets(title: 'Weight'),
+                      const UpdateAlartDialogWidegets(title: 'Weight'),
                     );
                   },
                   onPressedPersonalCode: () {
@@ -165,23 +181,22 @@ class _SettingsViewState extends State<SettingsView> {
                   onPressedCompanyName: () async {
                     final uid = FirebaseAuth.instance.currentUser!.uid;
                     final CompanyOption? selected =
-                        await showCompanyPickerDialog(
-                          context,
-                          initialCompanyId: companyId.isEmpty
-                              ? null
-                              : companyId,
-                        );
+                    (await showCompanyPickerDialog(
+                      context,
+                      initialCompanyId: companyId.isEmpty
+                          ? null
+                          : companyId,
+                    )) as CompanyOption?;
                     if (selected == null) return;
-
                     await FirebaseFirestore.instance
                         .collection('users')
                         .doc(uid)
                         .set({
-                          'companyId': selected.id,
-                          'companyName': selected.name,
-                          'companyAssignedAt': FieldValue.serverTimestamp(),
-                          'updatedAt': FieldValue.serverTimestamp(),
-                        }, SetOptions(merge: true));
+                      'companyId': selected.id,
+                      'companyName': selected.name,
+                      'companyAssignedAt': FieldValue.serverTimestamp(),
+                      'updatedAt': FieldValue.serverTimestamp(),
+                    }, SetOptions(merge: true));
                   },
                 ),
 
